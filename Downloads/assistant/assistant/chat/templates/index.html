@@ -1,0 +1,171 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Chat</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  </head>
+  <body>
+    
+    <div class="container mt-3">
+        <div class="navbar text-center navbar-dark bg-primary row text-center">
+            <div class="col">
+                <nav>
+                    <a class="navbar-brand" href="#">Chat Bot</a>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="container mt-2 border p-3">
+        <div id="message" class="">
+            <div class="row  py-2 px-2">
+                <div class="col">
+                    <div class="row my-2">
+                        <div class="col-8 rounded border-primary py-2 border">
+                            Hello and Welcome to the chat bot. How Can i assist you.
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        <div id="youtube-suggestions"></div>
+        <div class="row mt-3">
+            <input type="text" placeholder="Send Message" id="text-box" class="form-control mb-3 form-control-sm">
+            <button class="btn btn-sm btn-primary mx-2" id="send" type="submit">Send</button>
+            <button class="btn btn-sm btn-secondary mx-2" id="speak">Speak</button>
+        </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script>
+        var text_box = document.getElementById('text-box');
+        var message = document.getElementById('message');
+        var youtubeSuggestionsContainer = document.getElementById('youtube-suggestions');
+
+        // Function to handle sending the message
+        function sendMessage() {
+            if (text_box.value) {
+                message.innerHTML += '<div class="row  py-2 px-2">' +
+                    '<div class="col">' +
+                    '<div class="row text-right my-2">' +
+                    '<div class="col-4 "></div>' +
+                    '<div class="col-8 rounded border-secondary py-2 border">' +
+                    text_box.value +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+
+                console.log(text_box.value);
+                $.ajax({
+                    'url': `/?val=` + text_box.value,
+                    method: 'GET',
+                    success: function (response) {
+                        console.log(response);
+                        let generatedMessage = response.message;
+                        let youtubeSuggestions = response.youtube_suggestions;
+
+                        // Update the chatbot message with the generated text
+                        let chatMessage = '<div class="row  py-2 px-2">' +
+                            '<div class="col">' +
+                            '<div class="row my-2">' +
+                            '<div class="col-8 rounded border-primary py-2 border">' +
+                            generatedMessage +
+                            '</div>' +
+                            '</div>' +
+                            '</div>' +
+                            '</div>';
+                        message.innerHTML += chatMessage;
+
+                        function addYoutubeSuggestions(youtubeSuggestions) {
+            // If there are YouTube suggestions, update the youtube-suggestions element
+            if (youtubeSuggestions) {
+                let youtubeSuggestionsHTML = '<div class="row  py-2 px-2">' +
+                    '<div class="col">' +
+                    '<div class="row my-2">' +
+                    '<div class="col-8 rounded border-primary py-2 border">' +
+                    '<b>YouTube Suggestions:</b><br>' +
+                    youtubeSuggestions +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                youtubeSuggestionsContainer.innerHTML = youtubeSuggestionsHTML;
+
+                // Add event listener to the YouTube suggestions links to open in a new tab
+                let youtubeLinks = youtubeSuggestionsContainer.getElementsByTagName('a');
+                for (let i = 0; i < youtubeLinks.length; i++) {
+                    youtubeLinks[i].setAttribute('target', '_blank');
+                }
+            }
+        }
+
+                        // Clear the text-box input
+                        text_box.value = '';
+                    }
+                });
+            } else {
+                alert('Text-box is empty');
+            }
+        }
+
+        // Adding event listener for "Send" button click
+        document.getElementById('send').addEventListener('click', sendMessage);
+
+        // Adding event listener for pressing Enter key in the text-box
+        text_box.addEventListener('keyup', function (event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        document.getElementById('speak').addEventListener('click', function () {
+            let recognition = new webkitSpeechRecognition();
+            recognition.onstart = () => {
+                console.log('listening');
+            };
+            recognition.onresult = (e) => {
+                var transcript = e.results[0][0].transcript;
+                var confidence = e.results[0][0].confidence;
+                console.log(transcript);
+                message.innerHTML += '<div class="row  py-2 px-2">' +
+                    '<div class="col">' +
+                    '<div class="row text-right   my-2">' +
+                    '<div class="col-4 "></div>' +
+                    '<div class="col-8 rounded  border-secondary py-2 border">' +
+                    transcript +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
+                $.ajax({
+                    'url': `/?val=` + transcript,
+                    method: 'GET',
+                    success: function (response) {
+                        console.log(response);
+                        let utterance = new SpeechSynthesisUtterance(response);
+                        speechSynthesis.speak(utterance);
+                        message.innerHTML += '<div class="row    my-2">' +
+                            '<div class="col-8 rounded border-primary py-2 border">' +
+                            response +
+                            '</div>' +
+                            '</div>';
+                    }
+                });
+            };
+            recognition.start();
+        });
+    </script>
+  </body>
+</html>
